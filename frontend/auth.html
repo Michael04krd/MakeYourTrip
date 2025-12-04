@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>MakeYourTrip - Вход</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            width: 100%;
+            max-width: 400px;
+            padding: 40px;
+        }
+        .form-title {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+        }
+        .form-input {
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 2px solid #e1e1e1;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        .form-input:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+        .form-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        .form-btn:hover {
+            transform: translateY(-2px);
+        }
+        .form-switch {
+            text-align: center;
+            margin-top: 20px;
+            color: #666;
+        }
+        .form-switch a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .error {
+            color: #ff3860;
+            font-size: 14px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="loginForm">
+            <h2 class="form-title">Вход в систему</h2>
+            <div class="error" id="error"></div>
+            <input type="text" class="form-input" id="username" placeholder="Имя пользователя" required>
+            <input type="password" class="form-input" id="password" placeholder="Пароль" required>
+            <button class="form-btn" onclick="login()">Войти</button>
+            <div class="form-switch">
+                Нет аккаунта? <a href="#" onclick="showRegister()">Зарегистрироваться</a>
+            </div>
+        </div>
+
+        <div id="registerForm" style="display: none;">
+            <h2 class="form-title">Регистрация</h2>
+            <div class="error" id="regError"></div>
+            <input type="text" class="form-input" id="regUsername" placeholder="Имя пользователя" required>
+            <input type="email" class="form-input" id="regEmail" placeholder="Email" required>
+            <input type="password" class="form-input" id="regPassword" placeholder="Пароль" required>
+            <input type="password" class="form-input" id="regConfirmPassword" placeholder="Подтвердите пароль" required>
+            <input type="text" class="form-input" id="regFullName" placeholder="Полное имя (необязательно)">
+            <button class="form-btn" onclick="register()">Зарегистрироваться</button>
+            <div class="form-switch">
+                Уже есть аккаунт? <a href="#" onclick="showLogin()">Войти</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showRegister() {
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('registerForm').style.display = 'block';
+            document.getElementById('error').textContent = '';
+            document.getElementById('regError').textContent = '';
+        }
+
+        function showLogin() {
+            document.getElementById('registerForm').style.display = 'none';
+            document.getElementById('loginForm').style.display = 'block';
+            document.getElementById('error').textContent = '';
+            document.getElementById('regError').textContent = '';
+        }
+
+        function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const error = document.getElementById('error');
+            
+            error.textContent = '';
+            
+            const formData = new URLSearchParams();
+            formData.append('username', username);
+            formData.append('password', password);
+            
+            fetch('http://localhost:8000/api/token', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) throw response;
+                return response.json();
+            })
+            .then(data => {
+                localStorage.setItem('access_token', data.access_token);
+                window.location.href = 'index.html';
+            })
+            .catch(async error => {
+                if (error.json) {
+                    const err = await error.json();
+                    error.textContent = err.detail || 'Ошибка входа';
+                } else {
+                    error.textContent = 'Ошибка подключения к серверу';
+                }
+            });
+        }
+
+        function register() {
+            const username = document.getElementById('regUsername').value;
+            const email = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPassword').value;
+            const confirmPassword = document.getElementById('regConfirmPassword').value;
+            const fullName = document.getElementById('regFullName').value;
+            const error = document.getElementById('regError');
+            
+            error.textContent = '';
+            
+            if (password !== confirmPassword) {
+                error.textContent = 'Пароли не совпадают';
+                return;
+            }
+            
+            fetch('http://localhost:8000/api/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    username: username,
+                    email: email,
+                    password: password,
+                    full_name: fullName || null
+                })
+            })
+            .then(response => {
+                if (!response.ok) throw response;
+                return response.json();
+            })
+            .then(data => {
+                alert('Регистрация успешна! Теперь войдите в систему.');
+                showLogin();
+            })
+            .catch(async error => {
+                if (error.json) {
+                    const err = await error.json();
+                    error.textContent = err.detail || 'Ошибка регистрации';
+                } else {
+                    error.textContent = 'Ошибка подключения к серверу';
+                }
+            });
+        }
+    </script>
+</body>
+</html>

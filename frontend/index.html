@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>MakeYourTrip</title>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        .container {
+            text-align: center;
+            max-width: 800px;
+            padding: 40px;
+        }
+        h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            font-size: 1.2em;
+            margin-bottom: 50px;
+            opacity: 0.9;
+        }
+        .modes {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .mode {
+            background: white;
+            color: #333;
+            padding: 30px;
+            border-radius: 20px;
+            width: 300px;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .mode:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+        .mode h3 {
+            margin-top: 0;
+            color: #667eea;
+        }
+        .mode-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            margin-top: 20px;
+        }
+        .user-info {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.2);
+            padding: 10px 20px;
+            border-radius: 50px;
+            backdrop-filter: blur(10px);
+        }
+        .logout-btn {
+            background: #ff3860;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 50px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="user-info" id="userInfo" style="display: none;">
+        <span id="usernameDisplay"></span>
+        <button class="logout-btn" onclick="logout()">Выйти</button>
+    </div>
+
+    <div class="container">
+        <h1>MakeYourTrip</h1>
+        <div class="subtitle">Выберите режим работы</div>
+        
+        <div class="modes">
+            <div class="mode" onclick="selectMode('definite')">
+                <h3>📍 Определенный выбор</h3>
+                <p>Знаю куда еду, нужен план поездки</p>
+                <button class="mode-btn">Выбрать</button>
+            </div>
+            
+            <div class="mode" onclick="selectMode('indefinite')">
+                <h3>🤔 Неопределенный выбор</h3>
+                <p>Помогите выбрать направление</p>
+                <button class="mode-btn">Выбрать</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Проверяем авторизацию
+        const token = localStorage.getItem('access_token');
+        
+        if (!token) {
+            window.location.href = 'auth.html';
+        } else {
+            // Получаем информацию о пользователе
+            fetch('http://localhost:8000/api/users/me', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    localStorage.removeItem('access_token');
+                    window.location.href = 'auth.html';
+                    throw new Error('Not authorized');
+                }
+                return response.json();
+            })
+            .then(user => {
+                document.getElementById('userInfo').style.display = 'block';
+                document.getElementById('usernameDisplay').textContent = `Привет, ${user.username}!`;
+            })
+            .catch(() => {
+                localStorage.removeItem('access_token');
+                window.location.href = 'auth.html';
+            });
+        }
+
+        function selectMode(mode) {
+            fetch(`http://localhost:8000/api/mode/${mode}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(`Выбран режим: ${mode}\n${data.message}`);
+            })
+            .catch(error => {
+                console.error('Ошибка:', error);
+                alert('Ошибка подключения');
+            });
+        }
+
+        function logout() {
+            localStorage.removeItem('access_token');
+            window.location.href = 'auth.html';
+        }
+    </script>
+</body>
+</html>
