@@ -2,165 +2,142 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>MakeYourTrip</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MakeYourTrip - Планирование путешествий по России</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Иконки -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body {
-            font-family: 'Poppins', sans-serif;
-            margin: 0;
-            padding: 0;
+        .gradient-bg {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            color: white;
         }
-        .container {
-            text-align: center;
-            max-width: 800px;
-            padding: 40px;
+        .card-hover {
+            transition: all 0.3s ease;
         }
-        h1 {
-            font-size: 3em;
-            margin-bottom: 10px;
-        }
-        .subtitle {
-            font-size: 1.2em;
-            margin-bottom: 50px;
-            opacity: 0.9;
-        }
-        .modes {
-            display: flex;
-            gap: 30px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-        .mode {
-            background: white;
-            color: #333;
-            padding: 30px;
-            border-radius: 20px;
-            width: 300px;
-            cursor: pointer;
-            transition: transform 0.3s, box-shadow 0.3s;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        }
-        .mode:hover {
+        .card-hover:hover {
             transform: translateY(-10px);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-        }
-        .mode h3 {
-            margin-top: 0;
-            color: #667eea;
-        }
-        .mode-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 12px 30px;
-            border-radius: 50px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 600;
-            margin-top: 20px;
-        }
-        .user-info {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: rgba(255,255,255,0.2);
-            padding: 10px 20px;
-            border-radius: 50px;
-            backdrop-filter: blur(10px);
-        }
-        .logout-btn {
-            background: #ff3860;
-            color: white;
-            border: none;
-            padding: 8px 20px;
-            border-radius: 50px;
-            cursor: pointer;
-            margin-left: 10px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
         }
     </style>
 </head>
-<body>
-    <div class="user-info" id="userInfo" style="display: none;">
-        <span id="usernameDisplay"></span>
-        <button class="logout-btn" onclick="logout()">Выйти</button>
-    </div>
+<body class="gradient-bg min-h-screen flex flex-col">
+    <!-- Header -->
+    <header class="flex justify-between items-center p-6 md:p-8">
+        <h1 class="text-2xl md:text-3xl font-bold text-white">MakeYourTrip</h1>
+        <button id="authButton" class="bg-white/20 backdrop-blur-sm border border-white/30 text-white px-6 py-3 rounded-full font-semibold hover:bg-white/30 transition-all hover:-translate-y-1 hover:shadow-lg">
+            Войти / Зарегистрироваться
+        </button>
+    </header>
 
-    <div class="container">
-        <h1>MakeYourTrip</h1>
-        <div class="subtitle">Выберите режим работы</div>
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col items-center justify-center px-4 text-center">
+        <h2 class="text-4xl md:text-5xl font-bold text-white mb-6">Планируйте путешествия по России</h2>
         
-        <div class="modes">
-            <div class="mode" onclick="selectMode('definite')">
-                <h3>📍 Определенный выбор</h3>
-                <p>Знаю куда еду, нужен план поездки</p>
-                <button class="mode-btn">Выбрать</button>
+        <p class="text-xl text-white/90 max-w-2xl mb-12">
+            Два режима работы для идеального путешествия:<br>
+            • Определенный выбор — знаете куда едете, нужен план<br>
+            • Неопределенный выбор — поможем выбрать направление
+        </p>
+
+        <h3 class="text-2xl font-semibold text-white mb-10">Выберите режим работы:</h3>
+
+        <div class="flex flex-col md:flex-row gap-8 max-w-4xl">
+            <!-- Card 1 -->
+            <div onclick="selectMode('definite')" class="card-hover bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-8 cursor-pointer w-full md:w-1/2">
+                <div class="text-3xl mb-4">📍</div>
+                <h4 class="text-2xl font-bold text-white mb-4">Определенный выбор</h4>
+                <p class="text-white/80">Знаю куда еду, нужен план поездки</p>
             </div>
-            
-            <div class="mode" onclick="selectMode('indefinite')">
-                <h3>🤔 Неопределенный выбор</h3>
-                <p>Помогите выбрать направление</p>
-                <button class="mode-btn">Выбрать</button>
+
+            <!-- Card 2 -->
+            <div onclick="selectMode('indefinite')" class="card-hover bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-8 cursor-pointer w-full md:w-1/2">
+                <div class="text-3xl mb-4">🤔</div>
+                <h4 class="text-2xl font-bold text-white mb-4">Неопределенный выбор</h4>
+                <p class="text-white/80">Помогите выбрать направление</p>
             </div>
         </div>
-    </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="text-center py-6 text-white/70">
+        © 2023 MakeYourTrip. Все права защищены.
+    </footer>
 
     <script>
-        // Проверяем авторизацию
-        const token = localStorage.getItem('access_token');
+        // Конфигурация
+        const API_URL = 'http://127.0.0.1:8000/api';
         
-        if (!token) {
-            window.location.href = 'auth.html';
-        } else {
-            // Получаем информацию о пользователе
-            fetch('http://localhost:8000/api/users/me', {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            })
-            .then(response => {
-                if (!response.ok) {
+        // Проверка авторизации
+        function checkAuth() {
+            const token = localStorage.getItem('access_token');
+            const button = document.getElementById('authButton');
+            
+            if (token) {
+                // Проверяем валидность токена
+                fetch(`${API_URL}/users/me`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                })
+                .then(res => res.ok ? res.json() : Promise.reject())
+                .then(user => {
+                    button.innerHTML = `<i class="fas fa-user mr-2"></i>${user.username}`;
+                    button.onclick = () => showProfile(user);
+                })
+                .catch(() => {
                     localStorage.removeItem('access_token');
-                    window.location.href = 'auth.html';
-                    throw new Error('Not authorized');
-                }
-                return response.json();
-            })
-            .then(user => {
-                document.getElementById('userInfo').style.display = 'block';
-                document.getElementById('usernameDisplay').textContent = `Привет, ${user.username}!`;
-            })
-            .catch(() => {
-                localStorage.removeItem('access_token');
-                window.location.href = 'auth.html';
-            });
+                    setGuestButton();
+                });
+            } else {
+                setGuestButton();
+            }
         }
-
+        
+        function setGuestButton() {
+            const button = document.getElementById('authButton');
+            button.innerHTML = 'Войти / Зарегистрироваться';
+            button.onclick = () => window.location.href = 'auth.html';
+        }
+        
+        function showProfile(user) {
+            // Заглушка для профиля
+            console.log('Переход в профиль пользователя:', user.username);
+            // window.location.href = 'profile.html';
+        }
+        
         function selectMode(mode) {
-            fetch(`http://localhost:8000/api/mode/${mode}`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                alert(`Выбран режим: ${mode}\n${data.message}`);
-            })
-            .catch(error => {
-                console.error('Ошибка:', error);
-                alert('Ошибка подключения');
-            });
+            const token = localStorage.getItem('access_token');
+            const modes = {
+                'definite': 'Определенный выбор',
+                'indefinite': 'Неопределенный выбор'
+            };
+            
+            console.log(`Выбран режим: ${modes[mode]}`);
+            
+            // Если авторизован - отправляем на сервер
+            if (token) {
+                fetch(`${API_URL}/mode/${mode}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                }).catch(console.error);
+            }
+            
+            // Редирект на страницу режима
+            // window.location.href = `mode_${mode}.html`;
         }
-
-        function logout() {
-            localStorage.removeItem('access_token');
-            window.location.href = 'auth.html';
-        }
+        
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', checkAuth);
+        
+        // Для тестирования
+        window.debugAuth = () => {
+            if (localStorage.getItem('access_token')) {
+                localStorage.removeItem('access_token');
+                console.log('Выход выполнен');
+            } else {
+                localStorage.setItem('access_token', 'demo_token');
+                console.log('Вход выполнен (демо)');
+            }
+            checkAuth();
+        };
     </script>
 </body>
 </html>
