@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MakeYourTrip - Определенный выбор</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Иконки -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .card-hover { transition: all 0.3s ease; }
+        .card-hover:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); }
+        [x-cloak] { display: none !important; }
+        .step-active { @apply gradient-bg text-white shadow-lg; }
+        .step-inactive { @apply bg-gray-300 text-gray-600; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col bg-gray-50">
+    <!-- Header -->
+    <header class="gradient-bg text-white shadow-lg">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-4">
+                <a href="index.html" class="flex items-center space-x-2 hover:opacity-80 transition-opacity">
+                    <i class="fas fa-arrow-left"></i>
+                    <span class="text-sm">На главную</span>
+                </a>
+                <h1 class="text-2xl font-bold">Определенный выбор</h1>
+            </div>
+            <button id="authButton" class="bg-white/20 backdrop-blur-sm border border-white/30 text-white px-6 py-2 rounded-full hover:bg-white/30 transition-all">
+                Войти
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 container mx-auto px-4 py-8">
+        <!-- Прогресс -->
+        <div class="max-w-4xl mx-auto mb-10">
+            <h2 class="text-3xl font-bold text-gray-800 mb-2">Планирование поездки</h2>
+            <p class="text-gray-600 mb-6">Выберите город и создайте идеальный маршрут</p>
+            
+            <!-- Шаги -->
+            <div class="flex justify-between relative mb-8">
+                <div class="step-indicator flex flex-col items-center z-10">
+                    <div id="step1" class="step-active w-10 h-10 rounded-full flex items-center justify-center font-bold mb-2">1</div>
+                    <span class="text-sm font-medium">Город</span>
+                </div>
+                <div class="step-indicator flex flex-col items-center z-10">
+                    <div id="step2" class="step-inactive w-10 h-10 rounded-full flex items-center justify-center font-bold mb-2">2</div>
+                    <span class="text-sm text-gray-500">Фильтры</span>
+                </div>
+                <div class="step-indicator flex flex-col items-center z-10">
+                    <div id="step3" class="step-inactive w-10 h-10 rounded-full flex items-center justify-center font-bold mb-2">3</div>
+                    <span class="text-sm text-gray-500">Места</span>
+                </div>
+                <div class="absolute top-5 left-0 w-full h-0.5 bg-gray-200 -z-10"></div>
+                <div id="progressBar" class="absolute top-5 left-0 h-0.5 gradient-bg -z-10" style="width: 33%"></div>
+            </div>
+        </div>
+
+        <!-- Шаг 1: Города -->
+        <div id="step1Section" class="max-w-4xl mx-auto">
+            <div class="bg-white rounded-2xl shadow-lg p-6 mb-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">Выберите город</h3>
+                <p class="text-gray-600 mb-6">Все города загружаются из нашей базы данных</p>
+                
+                <!-- Поиск -->
+                <div class="mb-8">
+                    <div class="flex space-x-3">
+                        <input type="text" id="citySearch" placeholder="Найти город..." 
+                               class="flex-1 border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <button onclick="searchCity()" class="gradient-bg text-white px-6 py-3 rounded-xl font-medium hover:opacity-90">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                    <p id="searchResult" class="text-sm mt-2"></p>
+                </div>
+
+                <!-- Список городов -->
+                <div id="citiesContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Загрузка -->
+                    <div class="col-span-2 flex justify-center py-8">
+                        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Шаг 2: Фильтры -->
+        <div id="step2Section" class="max-w-4xl mx-auto hidden">
+            <div class="bg-white rounded-2xl shadow-lg p-6 mb-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">Настройте фильтры</h3>
+                <p class="text-gray-600 mb-6">Выбран: <span id="selectedCity" class="font-bold text-purple-600"></span></p>
+                
+                <!-- Категории -->
+                <div class="mb-8">
+                    <h4 class="font-bold text-gray-800 mb-4">Категории мест:</h4>
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        <label class="flex items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                            <input type="checkbox" value="restaurant" class="mr-3 text-purple-600">
+                            <span><i class="fas fa-utensils mr-2"></i>Рестораны</span>
+                        </label>
+                        <label class="flex items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                            <input type="checkbox" value="museum" class="mr-3 text-purple-600">
+                            <span><i class="fas fa-landmark mr-2"></i>Музеи</span>
+                        </label>
+                        <label class="flex items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                            <input type="checkbox" value="landmark" class="mr-3 text-purple-600">
+                            <span><i class="fas fa-monument mr-2"></i>Достопримечательности</span>
+                        </label>
+                        <label class="flex items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                            <input type="checkbox" value="park" class="mr-3 text-purple-600">
+                            <span><i class="fas fa-tree mr-2"></i>Парки</span>
+                        </label>
+                        <label class="flex items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                            <input type="checkbox" value="shopping" class="mr-3 text-purple-600">
+                            <span><i class="fas fa-shopping-bag mr-2"></i>Шоппинг</span>
+                        </label>
+                        <label class="flex items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                            <input type="checkbox" value="cafe" class="mr-3 text-purple-600">
+                            <span><i class="fas fa-coffee mr-2"></i>Кафе</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Кнопка -->
+                <button onclick="applyFilters()" class="w-full gradient-bg text-white py-4 rounded-xl font-bold text-lg hover:opacity-90">
+                    Показать места
+                </button>
+            </div>
+        </div>
+
+        <!-- Шаг 3: Места -->
+        <div id="step3Section" class="max-w-4xl mx-auto hidden">
+            <div class="bg-white rounded-2xl shadow-lg p-6">
+                <div class="mb-8">
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Выберите места</h3>
+                    <p class="text-gray-600" id="placesCount">Загрузка...</p>
+                </div>
+
+                <!-- Список мест -->
+                <div id="placesContainer" class="space-y-4">
+                    <!-- Загрузка -->
+                    <div class="flex justify-center py-8">
+                        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+                    </div>
+                </div>
+
+                <!-- Итог -->
+                <div class="mt-8 pt-6 border-t">
+                    <div class="bg-blue-50 rounded-xl p-4 mb-6">
+                        <p class="text-blue-800"><i class="fas fa-info-circle mr-2"></i>
+                            Выбрано мест: <span id="selectedCount" class="font-bold">0</span>
+                        </p>
+                    </div>
+                    <button onclick="generatePlan()" class="w-full gradient-bg text-white py-4 rounded-xl font-bold text-lg hover:opacity-90">
+                        Создать маршрут
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-6">
+        <div class="container mx-auto px-4 text-center">
+            <p>© 2024 MakeYourTrip. Режим "Определенный выбор"</p>
+        </div>
+    </footer>
+
+    <script>
+        // ========== КОНСТАНТЫ И ПЕРЕМЕННЫЕ ==========
+        const API_URL = 'http://127.0.0.1:8000/api';
+        let currentCity = null;
+        let selectedPlaces = [];
+        
+        // Типы мест
+        const placeTypes = {
+            restaurant: { icon: 'fa-utensils', color: 'text-red-500', bg: 'bg-red-100' },
+            museum: { icon: 'fa-landmark', color: 'text-blue-500', bg: 'bg-blue-100' },
+            landmark: { icon: 'fa-monument', color: 'text-green-500', bg: 'bg-green-100' },
+            park: { icon: 'fa-tree', color: 'text-emerald-500', bg: 'bg-emerald-100' },
+            shopping: { icon: 'fa-shopping-bag', color: 'text-purple-500', bg: 'bg-purple-100' },
+            cafe: { icon: 'fa-coffee', color: 'text-amber-500', bg: 'bg-amber-100' }
+        };
+
+        // ========== ФУНКЦИИ ДЛЯ ГОРОДОВ ==========
+        async function loadCities() {
+            const container = document.getElementById('citiesContainer');
+            
+            try {
+                const response = await fetch(`${API_URL}/cities`);
+                const cities = await response.json();
+                
+                if (cities.length === 0) {
+                    container.innerHTML = '<p class="text-gray-500 text-center py-8">Нет городов в базе</p>';
+                    return;
+                }
+                
+                container.innerHTML = cities.map(city => `
+                    <div class="card-hover bg-white border rounded-xl p-5 hover:border-purple-300">
+                        <div class="flex items-start mb-3">
+                            <div class="w-12 h-12 gradient-bg rounded-lg flex items-center justify-center text-white mr-4">
+                                <i class="fas fa-city"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-gray-800">${city.name}</h4>
+                                <p class="text-gray-500 text-sm">${city.climate}</p>
+                            </div>
+                        </div>
+                        <p class="text-gray-600 text-sm mb-4 line-clamp-2">${city.description || ''}</p>
+                        <button onclick="selectCity(${city.id}, '${city.name}')" 
+                                class="w-full gradient-bg text-white py-2 rounded-lg font-medium hover:opacity-90">
+                            Выбрать
+                        </button>
+                    </div>
+                `).join('');
+                
+            } catch (error) {
+                container.innerHTML = `
+                    <div class="col-span-2 text-center py-8">
+                        <p class="text-red-500">Ошибка загрузки: ${error.message}</p>
+                        <button onclick="loadCities()" class="mt-3 text-purple-600">Повторить</button>
+                    </div>
+                `;
+            }
+        }
+
+        async function searchCity() {
+            const input = document.getElementById('citySearch');
+            const result = document.getElementById('searchResult');
+            const query = input.value.trim();
+            
+            if (!query) {
+                result.innerHTML = '<span class="text-red-500">Введите название</span>';
+                return;
+            }
+            
+            try {
+                result.innerHTML = '<span class="text-blue-500"><i class="fas fa-spinner fa-spin mr-2"></i>Поиск...</span>';
+                const response = await fetch(`${API_URL}/cities?search=${encodeURIComponent(query)}`);
+                const cities = await response.json();
+                
+                if (cities.length === 0) {
+                    result.innerHTML = `<span class="text-gray-600">"${query}" не найден</span>`;
+                } else if (cities.length === 1) {
+                    const city = cities[0];
+                    result.innerHTML = `
+                        <span class="text-green-600">Найден: ${city.name}</span>
+                        <button onclick="selectCity(${city.id}, '${city.name}')" 
+                                class="ml-2 text-sm bg-green-100 text-green-800 px-2 py-1 rounded">
+                            Выбрать
+                        </button>
+                    `;
+                } else {
+                    result.innerHTML = `
+                        <span class="text-green-600">Найдено ${cities.length} городов:</span>
+                        <div class="mt-2 space-y-1">
+                            ${cities.map(city => `
+                                <div class="flex justify-between">
+                                    <span>${city.name}</span>
+                                    <button onclick="selectCity(${city.id}, '${city.name}')" 
+                                            class="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                                        Выбрать
+                                    </button>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                result.innerHTML = `<span class="text-red-500">Ошибка: ${error.message}</span>`;
+            }
+        }
+
+        function selectCity(id, name) {
+            currentCity = { id, name };
+            document.getElementById('selectedCity').textContent = name;
+            
+            // Переход к шагу 2
+            document.getElementById('step1Section').classList.add('hidden');
+            document.getElementById('step2Section').classList.remove('hidden');
+            updateProgress(2);
+        }
+
+        // ========== ФУНКЦИИ ДЛЯ МЕСТ ==========
+        async function applyFilters() {
+            // Получаем выбранные типы
+            const checkboxes = document.querySelectorAll('#step2Section input[type="checkbox"]:checked');
+            const types = Array.from(checkboxes).map(cb => cb.value);
+            
+            // Переход к шагу 3
+            document.getElementById('step2Section').classList.add('hidden');
+            document.getElementById('step3Section').classList.remove('hidden');
+            updateProgress(3);
+            
+            // Загружаем места
+            await loadPlaces(types);
+        }
+
+        async function loadPlaces(types = []) {
+            const container = document.getElementById('placesContainer');
+            const countElement = document.getElementById('placesCount');
+            
+            container.innerHTML = `
+                <div class="flex justify-center py-8">
+                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+                </div>
+            `;
+            
+            try {
+                let url = `${API_URL}/cities/${currentCity.id}/places`;
+                const response = await fetch(url);
+                let places = await response.json();
+                
+                // Фильтруем по типам если выбраны
+                if (types.length > 0) {
+                    places = places.filter(p => types.includes(p.type));
+                }
+                
+                countElement.textContent = `Найдено ${places.length} мест`;
+                
+                if (places.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center py-8">
+                            <p class="text-gray-500">Нет мест по выбранным фильтрам</p>
+                            <button onclick="goBackToFilters()" class="mt-3 text-purple-600">Изменить фильтры</button>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Отображаем места
+                container.innerHTML = places.map(place => {
+                    const type = placeTypes[place.type] || { icon: 'fa-map-marker', color: 'text-gray-500', bg: 'bg-gray-100' };
+                    const stars = '★'.repeat(Math.floor(place.rating)) + '☆'.repeat(5 - Math.floor(place.rating));
+                    
+                    return `
+                        <div class="flex items-center justify-between p-4 border rounded-xl hover:bg-gray-50">
+                            <div class="flex items-center">
+                                <div class="w-12 h-12 ${type.bg} rounded-lg flex items-center justify-center ${type.color} mr-4">
+                                    <i class="fas ${type.icon}"></i>
+                                </div>
+                                <div>
+                                    <h5 class="font-bold text-gray-800">${place.name}</h5>
+                                    <p class="text-gray-500 text-sm">${place.type}</p>
+                                    <div class="text-yellow-500 text-sm">${stars} ${place.rating.toFixed(1)}</div>
+                                </div>
+                            </div>
+                            <button onclick="addToPlan(${place.id}, '${place.name}')" 
+                                    class="gradient-bg text-white px-4 py-2 rounded-lg hover:opacity-90">
+                                Добавить
+                            </button>
+                        </div>
+                    `;
+                }).join('');
+                
+            } catch (error) {
+                container.innerHTML = `
+                    <div class="text-center py-8">
+                        <p class="text-red-500">Ошибка загрузки: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        function addToPlan(id, name) {
+            if (!selectedPlaces.find(p => p.id === id)) {
+                selectedPlaces.push({ id, name });
+                document.getElementById('selectedCount').textContent = selectedPlaces.length;
+                showNotification(`"${name}" добавлен в план`);
+            } else {
+                showNotification('Уже в плане', 'info');
+            }
+        }
+
+        function goBackToFilters() {
+            document.getElementById('step3Section').classList.add('hidden');
+            document.getElementById('step2Section').classList.remove('hidden');
+            updateProgress(2);
+        }
+
+        // ========== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==========
+        function updateProgress(step) {
+            // Обновляем индикаторы шагов
+            document.querySelectorAll('.step-indicator div').forEach((div, index) => {
+                div.className = index < step ? 'step-active w-10 h-10 rounded-full flex items-center justify-center font-bold mb-2' 
+                                           : 'step-inactive w-10 h-10 rounded-full flex items-center justify-center font-bold mb-2';
+            });
+            
+            // Обновляем текст
+            document.querySelectorAll('.step-indicator span').forEach((span, index) => {
+                span.className = index < step ? 'text-sm font-medium' : 'text-sm text-gray-500';
+            });
+            
+            // Обновляем прогресс-бар
+            document.getElementById('progressBar').style.width = `${step * 33}%`;
+        }
+
+        function showNotification(message, type = 'success') {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 px-4 py-2 rounded-lg text-white font-medium z-50 ${
+                type === 'success' ? 'bg-green-500' : 'bg-blue-500'
+            }`;
+            notification.innerHTML = `<i class="fas fa-${type === 'success' ? 'check' : 'info'} mr-2"></i>${message}`;
+            
+            document.body.appendChild(notification);
+            setTimeout(() => notification.remove(), 3000);
+        }
+
+        function generatePlan() {
+            if (selectedPlaces.length === 0) {
+                showNotification('Добавьте хотя бы одно место', 'info');
+                return;
+            }
+            
+            const plan = `
+                🗺️ План путешествия в ${currentCity.name}
+                
+                📍 Выбрано мест: ${selectedPlaces.length}
+                
+                🎯 Маршрут:
+                ${selectedPlaces.map((p, i) => `${i+1}. ${p.name}`).join('\n')}
+                
+                💡 Совет: Распределите места логично по дням!
+            `;
+            
+            alert(plan);
+        }
+
+        // ========== АВТОРИЗАЦИЯ ==========
+        function checkAuth() {
+            const token = localStorage.getItem('access_token');
+            const button = document.getElementById('authButton');
+            
+            if (token) {
+                fetch(`${API_URL}/users/me`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                })
+                .then(res => res.ok ? res.json() : Promise.reject())
+                .then(user => {
+                    button.innerHTML = `<i class="fas fa-user mr-2"></i>${user.username}`;
+                    button.onclick = () => logout();
+                })
+                .catch(() => {
+                    localStorage.removeItem('access_token');
+                    button.innerHTML = 'Войти';
+                    button.onclick = () => window.location.href = 'auth.html';
+                });
+            } else {
+                button.innerHTML = 'Войти';
+                button.onclick = () => window.location.href = 'auth.html';
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('access_token');
+            checkAuth();
+            showNotification('Вы вышли из системы');
+        }
+
+        // ========== ИНИЦИАЛИЗАЦИЯ ==========
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCities();
+            checkAuth();
+            updateProgress(1);
+        });
+    </script>
+</body>
+</html>

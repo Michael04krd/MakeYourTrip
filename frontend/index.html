@@ -104,6 +104,8 @@
             // window.location.href = 'profile.html';
         }
         
+        // В index.html заменить функцию selectMode на:
+
         function selectMode(mode) {
             const token = localStorage.getItem('access_token');
             const modes = {
@@ -113,6 +115,11 @@
             
             console.log(`Выбран режим: ${modes[mode]}`);
             
+            // Если выбран определенный выбор - переходим на страницу
+            if (mode === 'definite') {
+                window.location.href = 'definite.html';
+            }
+            
             // Если авторизован - отправляем на сервер
             if (token) {
                 fetch(`${API_URL}/mode/${mode}`, {
@@ -120,8 +127,10 @@
                 }).catch(console.error);
             }
             
-            // Редирект на страницу режима
-            // window.location.href = `mode_${mode}.html`;
+            // Для неопределенного выбора показываем сообщение
+            if (mode === 'indefinite') {
+                alert('Режим "Неопределенный выбор" в разработке. Пожалуйста, используйте "Определенный выбор".');
+            }
         }
         
         // Инициализация
