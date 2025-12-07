@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, Text, ForeignKey, Boolean
+from sqlalchemy import Column, Integer, String, Float, Text, ForeignKey, Boolean, UniqueConstraint
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from sqlalchemy import DateTime
@@ -14,6 +14,8 @@ class User(Base):
     full_name = Column(String, nullable=True)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    favorites = relationship("Favorite", back_populates="user", cascade="all, delete-orphan")
 
 class City(Base):
     __tablename__ = "cities"
@@ -38,4 +40,18 @@ class Place(Base):
 
     city_id = Column(Integer, ForeignKey("cities.id"))
     city = relationship("City", back_populates="places")
+    favorites = relationship("Favorite", back_populates="place", cascade="all, delete-orphan")
 
+class Favorite(Base):
+    __tablename__ = "favorites"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    place_id = Column(Integer, ForeignKey("places.id"))
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    user = relationship("User", back_populates="favorites")
+    place = relationship("Place", back_populates="favorites")
+    
+    # Уникальная пара пользователь-место
+    __table_args__ = (UniqueConstraint('user_id', 'place_id', name='unique_user_place'),)

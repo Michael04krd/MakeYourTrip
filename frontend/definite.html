@@ -332,8 +332,29 @@
                     return;
                 }
                 
+                // Проверяем избранное для каждого места
+                const token = localStorage.getItem('access_token');
+                const favoritesPromises = places.map(async (place) => {
+                    if (!token) return { place, isFavorite: false };
+                    
+                    try {
+                        const favResponse = await fetch(`${API_URL}/favorites/${place.id}/check`, {
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
+                        if (favResponse.ok) {
+                            const favData = await favResponse.json();
+                            return { place, isFavorite: favData.is_favorite };
+                        }
+                    } catch (e) {
+                        console.error('Error checking favorite:', e);
+                    }
+                    return { place, isFavorite: false };
+                });
+                
+                const placesWithFavorites = await Promise.all(favoritesPromises);
+                
                 // Отображаем места
-                container.innerHTML = places.map(place => {
+                container.innerHTML = placesWithFavorites.map(({ place, isFavorite }) => {
                     const type = placeTypes[place.type] || { icon: 'fa-map-marker', color: 'text-gray-500', bg: 'bg-gray-100' };
                     const stars = '★'.repeat(Math.floor(place.rating)) + '☆'.repeat(5 - Math.floor(place.rating));
                     
@@ -349,10 +370,17 @@
                                     <div class="text-yellow-500 text-sm">${stars} ${place.rating.toFixed(1)}</div>
                                 </div>
                             </div>
-                            <button onclick="addToPlan(${place.id}, '${place.name}')" 
-                                    class="gradient-bg text-white px-4 py-2 rounded-lg hover:opacity-90">
-                                Добавить
-                            </button>
+                            <div class="flex space-x-2">
+                                <button onclick="toggleFavorite(${place.id}, '${place.name}')" 
+                                    class="flex items-center space-x-1 bg-red-100 text-red-600 hover:bg-red-200 px-3 py-2 rounded-lg">
+                                    <i class="far fa-heart"></i>
+                                        <span>В избранное</span>
+                                </button>
+                                <button onclick="toggleFavorite(${place.id}, '${place.name}')" 
+                                        class="flex items-center space-x-1 ${isFavorite ? 'bg-red-500 text-white' : 'bg-red-100 text-red-600 hover:bg-red-200'} px-3 py-2 rounded-lg">
+                                    <i class="${isFavorite ? 'fas' : 'far'} fa-heart"></i>
+                                </button>
+                            </div>
                         </div>
                     `;
                 }).join('');
@@ -431,27 +459,39 @@
         }
 
         // ========== АВТОРИЗАЦИЯ ==========
-        function checkAuth() {
+        async function checkAuth() {
             const token = localStorage.getItem('access_token');
             const button = document.getElementById('authButton');
             
-            if (token) {
-                fetch(`${API_URL}/users/me`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                })
-                .then(res => res.ok ? res.json() : Promise.reject())
-                .then(user => {
-                    button.innerHTML = `<i class="fas fa-user mr-2"></i>${user.username}`;
-                    button.onclick = () => logout();
-                })
-                .catch(() => {
-                    localStorage.removeItem('access_token');
-                    button.innerHTML = 'Войти';
-                    button.onclick = () => window.location.href = 'auth.html';
-                });
-            } else {
-                button.innerHTML = 'Войти';
+            if (!token) {
+                button.innerHTML = '<i class="fas fa-sign-in-alt mr-2"></i>Войти';
+                // Просто переходим на auth.html
                 button.onclick = () => window.location.href = 'auth.html';
+                return false;
+            }
+            
+            try {
+                const response = await fetch(`${API_URL}/users/me`, {
+                    headers: { 
+                        'Authorization': `Bearer ${token}` 
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                const user = await response.json();
+                button.innerHTML = `<i class="fas fa-user mr-2"></i>${user.username}`;
+                button.onclick = () => window.location.href = 'profile.html';
+                return true;
+                
+            } catch (error) {
+                console.error('Ошибка авторизации:', error);
+                localStorage.removeItem('access_token');
+                button.innerHTML = '<i class="fas fa-sign-in-alt mr-2"></i>Войти';
+                button.onclick = () => window.location.href = 'auth.html';
+                return false;
             }
         }
 
@@ -467,6 +507,61 @@
             checkAuth();
             updateProgress(1);
         });
+
+        async function toggleFavorite(placeId, placeName) {
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                alert('Войдите, чтобы добавлять в избранное');
+                return;
+            }
+            
+            try {
+                // Сначала проверяем, есть ли уже в избранном
+                const checkResponse = await fetch(`${API_URL}/favorites/${placeId}/check`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                let isFavorite = false;
+                if (checkResponse.ok) {
+                    const checkData = await checkResponse.json();
+                    isFavorite = checkData.is_favorite;
+                }
+                
+                if (!isFavorite) {
+                    // Добавляем в избранное
+                    const response = await fetch(`${API_URL}/favorites`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ place_id: placeId })
+                    });
+                    
+                    if (response.ok) {
+                        showNotification(`"${placeName}" добавлено в избранное! ❤️`, 'success');
+                        return true;
+                    }
+                } else {
+                    // Удаляем из избранного
+                    const response = await fetch(`${API_URL}/favorites/${placeId}`, {
+                        method: 'DELETE',
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    
+                    if (response.ok) {
+                        showNotification(`"${placeName}" удалено из избранного`, 'info');
+                        return false;
+                    }
+                }
+            } catch (error) {
+                console.error('Ошибка:', error);
+                showNotification('Ошибка при работе с избранным', 'error');
+            }
+            return null;
+        }
+
+
     </script>
 </body>
 </html>

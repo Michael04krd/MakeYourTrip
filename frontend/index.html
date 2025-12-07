@@ -74,14 +74,14 @@
             const button = document.getElementById('authButton');
             
             if (token) {
-                // Проверяем валидность токена
                 fetch(`${API_URL}/users/me`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 })
                 .then(res => res.ok ? res.json() : Promise.reject())
+                
                 .then(user => {
                     button.innerHTML = `<i class="fas fa-user mr-2"></i>${user.username}`;
-                    button.onclick = () => showProfile(user);
+                    button.onclick = () => window.location.href = 'profile.html';  // просто переход
                 })
                 .catch(() => {
                     localStorage.removeItem('access_token');
@@ -91,7 +91,7 @@
                 setGuestButton();
             }
         }
-        
+
         function setGuestButton() {
             const button = document.getElementById('authButton');
             button.innerHTML = 'Войти / Зарегистрироваться';

@@ -142,7 +142,16 @@
             })
             .then(data => {
                 localStorage.setItem('access_token', data.access_token);
-                window.location.href = 'index.html';
+                
+                // Сообщение о входе
+                alert('Вход выполнен успешно!');
+                
+                // Возвращаемся назад
+                if (document.referrer && document.referrer.includes(location.hostname)) {
+                    window.location.href = document.referrer;
+                } else {
+                    window.location.href = 'index.html';
+                }
             })
             .catch(async error => {
                 if (error.json) {
@@ -154,48 +163,63 @@
             });
         }
 
+
         function register() {
-            const username = document.getElementById('regUsername').value;
-            const email = document.getElementById('regEmail').value;
+            // Берем значения
+            const username = document.getElementById('regUsername').value.trim();
+            const email = document.getElementById('regEmail').value.trim();
             const password = document.getElementById('regPassword').value;
             const confirmPassword = document.getElementById('regConfirmPassword').value;
-            const fullName = document.getElementById('regFullName').value;
+            const fullName = document.getElementById('regFullName').value.trim();
             const error = document.getElementById('regError');
             
+            // Сбрасываем ошибку
             error.textContent = '';
+            
+            // Базовая валидация
+            if (!username || !email || !password) {
+                error.textContent = 'Заполните обязательные поля';
+                return;
+            }
             
             if (password !== confirmPassword) {
                 error.textContent = 'Пароли не совпадают';
                 return;
             }
             
-            fetch('http://localhost:8000/api/register', {
+            // Формируем данные
+            const userData = {
+                username: username,
+                email: email,
+                password: password,
+                full_name: fullName || null
+            };
+            
+            console.log("Отправляю:", userData);
+            
+            // Отправляем запрос
+            fetch('http://127.0.0.1:8000/api/register', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    username: username,
-                    email: email,
-                    password: password,
-                    full_name: fullName || null
-                })
+                body: JSON.stringify(userData)
             })
             .then(response => {
-                if (!response.ok) throw response;
+                console.log("Статус ответа:", response.status);
+                if (!response.ok) {
+                    return response.json().then(err => { throw err; });
+                }
                 return response.json();
             })
             .then(data => {
+                console.log("Успех:", data);
                 alert('Регистрация успешна! Теперь войдите в систему.');
-                showLogin();
+                showLogin(); // Переключаем на форму входа
             })
-            .catch(async error => {
-                if (error.json) {
-                    const err = await error.json();
-                    error.textContent = err.detail || 'Ошибка регистрации';
-                } else {
-                    error.textContent = 'Ошибка подключения к серверу';
-                }
+            .catch(error => {
+                console.error("Полная ошибка:", error);
+                error.textContent = error.detail || 'Ошибка регистрации';
             });
         }
     </script>

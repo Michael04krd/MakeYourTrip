@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException, Form, Query
+from fastapi import FastAPI, Depends, HTTPException, Form, Query, Header
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from typing import List, Optional
@@ -9,18 +9,40 @@ from app.database import engine, get_db
 from app import models, schemas, auth
 from sqlalchemy.exc import IntegrityError
 
-# Проверяем и создаем таблицы если нужно
-models.Base.metadata.create_all(bind=engine, checkfirst=True)
-
 app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:8000","http://127.0.0.1:8000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Вспомогательная функция для получения пользователя из токена - ПЕРЕМЕСТИ СЮДА!
+def get_current_user(authorization: str = Header(None), db: Session = Depends(get_db)):
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Токен не предоставлен")
+    
+    token = authorization[7:]  # Убираем "Bearer "
+    
+    try:
+        payload = jwt.decode(token, auth.SECRET_KEY, algorithms=[auth.ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            raise HTTPException(status_code=401, detail="Неверный токен")
+    except jwt.PyJWTError:
+        raise HTTPException(status_code=401, detail="Неверный токен")
+    
+    user = db.query(models.User).filter(models.User.username == username).first()
+    if user is None:
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
+    
+    return user
+
+# Проверяем и создаем таблицы если нужно
+models.Base.metadata.create_all(bind=engine, checkfirst=True)
+
 
 @app.get("/")
 def root():
@@ -79,9 +101,14 @@ def login(
 
 # Получение текущего пользователя
 @app.get("/api/users/me", response_model=schemas.UserResponse)
-def read_users_me(token: str, db: Session = Depends(get_db)):
-    if not token:
+def read_users_me(
+    authorization: str = Header(None), 
+    db: Session = Depends(get_db)
+):
+    if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Токен не предоставлен")
+    
+    token = authorization[7:]  
     
     try:
         payload = jwt.decode(token, auth.SECRET_KEY, algorithms=[auth.ALGORITHM])
@@ -166,3 +193,93 @@ def get_city_places(city_id: int, db: Session = Depends(get_db)):
     
     places = db.query(models.Place).filter(models.Place.city_id == city_id).all()
     return places
+
+# Эндпоинты для избранного
+@app.post("/api/favorites", response_model=schemas.FavoriteResponse)
+def add_to_favorites(
+    favorite: schemas.FavoriteCreate,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    # Проверяем существует ли место
+    place = db.query(models.Place).filter(models.Place.id == favorite.place_id).first()
+    if not place:
+        raise HTTPException(status_code=404, detail="Место не найдено")
+    
+    # Проверяем не добавлено ли уже
+    existing = db.query(models.Favorite).filter(
+        models.Favorite.user_id == current_user.id,
+        models.Favorite.place_id == favorite.place_id
+    ).first()
+    
+    if existing:
+        raise HTTPException(status_code=400, detail="Место уже в избранном")
+    
+    # Создаем запись
+    db_favorite = models.Favorite(
+        user_id=current_user.id,
+        place_id=favorite.place_id
+    )
+    
+    try:
+        db.add(db_favorite)
+        db.commit()
+        db.refresh(db_favorite)
+        
+        # Добавляем информацию о месте
+        db_favorite.place = place
+        return db_favorite
+        
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=400, detail="Ошибка при добавлении в избранное")
+
+@app.delete("/api/favorites/{place_id}", response_model=schemas.FavoriteDeleteResponse)
+def remove_from_favorites(
+    place_id: int,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    # Ищем и удаляем
+    favorite = db.query(models.Favorite).filter(
+        models.Favorite.user_id == current_user.id,
+        models.Favorite.place_id == place_id
+    ).first()
+    
+    if not favorite:
+        raise HTTPException(status_code=404, detail="Место не найдено в избранном")
+    
+    db.delete(favorite)
+    db.commit()
+    
+    return {"message": "Удалено из избранного", "place_id": place_id}
+
+@app.get("/api/favorites", response_model=List[schemas.FavoriteResponse])
+def get_favorites(
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    # Получаем избранные места
+    favorites = db.query(models.Favorite).filter(
+        models.Favorite.user_id == current_user.id
+    ).all()
+    
+    # Вручную добавляем информацию о местах
+    for fav in favorites:
+        fav.place = db.query(models.Place).filter(models.Place.id == fav.place_id).first()
+    
+    return favorites
+
+@app.get("/api/favorites/{place_id}/check")
+def check_favorite(
+    place_id: int,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    # Проверяем, есть ли место в избранном
+    favorite = db.query(models.Favorite).filter(
+        models.Favorite.user_id == current_user.id,
+        models.Favorite.place_id == place_id
+    ).first()
+    
+    return {"is_favorite": favorite is not None}
