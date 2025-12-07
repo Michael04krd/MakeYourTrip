@@ -8,26 +8,21 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Иконки -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Наши стили -->
+    <link rel="stylesheet" href="css/main.css">
     <style>
-        .gradient-bg {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-        .card-hover {
-            transition: all 0.3s ease;
-        }
-        .card-hover:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-        }
+        [x-cloak] { display: none !important; }
     </style>
 </head>
 <body class="gradient-bg min-h-screen flex flex-col">
     <!-- Header -->
     <header class="flex justify-between items-center p-6 md:p-8">
         <h1 class="text-2xl md:text-3xl font-bold text-white">MakeYourTrip</h1>
-        <button id="authButton" class="bg-white/20 backdrop-blur-sm border border-white/30 text-white px-6 py-3 rounded-full font-semibold hover:bg-white/30 transition-all hover:-translate-y-1 hover:shadow-lg">
-            Войти / Зарегистрироваться
-        </button>
+        <div id="authContainer">
+            <a href="auth.html" class="bg-white/20 backdrop-blur-sm border border-white/30 text-white px-6 py-3 rounded-full font-semibold hover:bg-white/30 transition-all hover:-translate-y-1 hover:shadow-lg">
+                Войти / Зарегистрироваться
+            </a>
+        </div>
     </header>
 
     <!-- Main Content -->
@@ -44,11 +39,11 @@
 
         <div class="flex flex-col md:flex-row gap-8 max-w-4xl">
             <!-- Card 1 -->
-            <div onclick="selectMode('definite')" class="card-hover bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-8 cursor-pointer w-full md:w-1/2">
+            <a href="definite.html" class="card-hover bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-8 cursor-pointer w-full md:w-1/2 block hover:no-underline">
                 <div class="text-3xl mb-4">📍</div>
                 <h4 class="text-2xl font-bold text-white mb-4">Определенный выбор</h4>
                 <p class="text-white/80">Знаю куда еду, нужен план поездки</p>
-            </div>
+            </a>
 
             <!-- Card 2 -->
             <div onclick="selectMode('indefinite')" class="card-hover bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-8 cursor-pointer w-full md:w-1/2">
@@ -64,89 +59,60 @@
         © 2023 MakeYourTrip. Все права защищены.
     </footer>
 
+    <!-- Скрипты -->
+    <script src="js/api.js"></script>
+    <script src="js/utils.js"></script>
     <script>
-        // Конфигурация
-        const API_URL = 'http://127.0.0.1:8000/api';
-        
         // Проверка авторизации
         function checkAuth() {
             const token = localStorage.getItem('access_token');
-            const button = document.getElementById('authButton');
+            const container = document.getElementById('authContainer');
             
-            if (token) {
-                fetch(`${API_URL}/users/me`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                })
-                .then(res => res.ok ? res.json() : Promise.reject())
-                
-                .then(user => {
-                    button.innerHTML = `<i class="fas fa-user mr-2"></i>${user.username}`;
-                    button.onclick = () => window.location.href = 'profile.html';  // просто переход
-                })
-                .catch(() => {
-                    localStorage.removeItem('access_token');
-                    setGuestButton();
-                });
-            } else {
-                setGuestButton();
+            if (token && window.api) {
+                // Пробуем получить данные пользователя
+                window.api.getCurrentUser()
+                    .then(user => {
+                        container.innerHTML = `
+                            <div class="flex items-center space-x-4">
+                                <span class="text-white/80">Привет, ${user.username}!</span>
+                                <a href="profile.html" class="bg-white/20 backdrop-blur-sm border border-white/30 text-white px-6 py-3 rounded-full font-semibold hover:bg-white/30 transition-all hover:-translate-y-1 hover:shadow-lg">
+                                    <i class="fas fa-user mr-2"></i>Профиль
+                                </a>
+                            </div>
+                        `;
+                    })
+                    .catch(() => {
+                        // Если ошибка - показываем кнопку входа
+                        container.innerHTML = `
+                            <a href="auth.html" class="bg-white/20 backdrop-blur-sm border border-white/30 text-white px-6 py-3 rounded-full font-semibold hover:bg-white/30 transition-all hover:-translate-y-1 hover:shadow-lg">
+                                Войти / Зарегистрироваться
+                            </a>
+                        `;
+                    });
             }
         }
 
-        function setGuestButton() {
-            const button = document.getElementById('authButton');
-            button.innerHTML = 'Войти / Зарегистрироваться';
-            button.onclick = () => window.location.href = 'auth.html';
-        }
-        
-        function showProfile(user) {
-            // Заглушка для профиля
-            console.log('Переход в профиль пользователя:', user.username);
-            // window.location.href = 'profile.html';
-        }
-        
-        // В index.html заменить функцию selectMode на:
-
+        // Выбор режима
         function selectMode(mode) {
-            const token = localStorage.getItem('access_token');
-            const modes = {
-                'definite': 'Определенный выбор',
-                'indefinite': 'Неопределенный выбор'
-            };
-            
-            console.log(`Выбран режим: ${modes[mode]}`);
-            
-            // Если выбран определенный выбор - переходим на страницу
-            if (mode === 'definite') {
-                window.location.href = 'definite.html';
-            }
-            
-            // Если авторизован - отправляем на сервер
-            if (token) {
-                fetch(`${API_URL}/mode/${mode}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                }).catch(console.error);
-            }
-            
-            // Для неопределенного выбора показываем сообщение
             if (mode === 'indefinite') {
-                alert('Режим "Неопределенный выбор" в разработке. Пожалуйста, используйте "Определенный выбор".');
+                if (window.UIUtils) {
+                    window.UIUtils.showNotification('Режим "Неопределенный выбор" в разработке. Пожалуйста, используйте "Определенный выбор".', 'info', 5000);
+                } else {
+                    alert('Режим "Неопределенный выбор" в разработке.');
+                }
+            }
+            
+            // Отправляем на сервер если авторизован
+            const token = localStorage.getItem('access_token');
+            if (token) {
+                fetch(`http://127.0.0.1:8000/api/mode/${mode}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                }).catch(() => {});
             }
         }
-        
-        // Инициализация
+
+        // При загрузке страницы
         document.addEventListener('DOMContentLoaded', checkAuth);
-        
-        // Для тестирования
-        window.debugAuth = () => {
-            if (localStorage.getItem('access_token')) {
-                localStorage.removeItem('access_token');
-                console.log('Выход выполнен');
-            } else {
-                localStorage.setItem('access_token', 'demo_token');
-                console.log('Вход выполнен (демо)');
-            }
-            checkAuth();
-        };
     </script>
 </body>
 </html>

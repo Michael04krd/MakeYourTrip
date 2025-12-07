@@ -9,6 +9,7 @@
         .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
         .tab-active { border-bottom: 3px solid #667eea; color: #667eea; font-weight: 600; }
         .tab-inactive { color: #666; }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body class="min-h-screen bg-gray-50">
@@ -26,19 +27,17 @@
     <main class="container mx-auto px-4 py-8 max-w-4xl">
         <!-- Вкладки -->
         <div class="flex border-b mb-6">
-            <button id="tabProfile" onclick="showTab('profile')" 
-                    class="tab-active px-6 py-3 text-lg">
+            <button id="tabProfile" class="tab-active px-6 py-3 text-lg">
                 <i class="fas fa-user mr-2"></i>Профиль
             </button>
-            <button id="tabFavorites" onclick="showTab('favorites')" 
-                    class="tab-inactive px-6 py-3 text-lg">
+            <button id="tabFavorites" class="tab-inactive px-6 py-3 text-lg">
                 <i class="fas fa-heart mr-2"></i>Избранное
             </button>
         </div>
         
         <!-- Контейнер для контента -->
         <div id="contentContainer">
-            <!-- Профиль (по умолчанию) -->
+            <!-- Профиль -->
             <div id="profileContent" class="bg-white rounded-2xl shadow-lg p-6">
                 <div class="space-y-4 mb-8">
                     <div>
@@ -63,13 +62,12 @@
                 </div>
                 
                 <!-- Кнопка выхода -->
-                <button onclick="logout()" 
-                        class="w-full bg-red-500 hover:bg-red-600 text-white py-3 rounded-lg font-medium">
+                <button id="logoutButton" class="w-full bg-red-500 hover:bg-red-600 text-white py-3 rounded-lg font-medium">
                     <i class="fas fa-sign-out-alt mr-2"></i>Выйти
                 </button>
             </div>
             
-            <!-- Избранное (скрыто по умолчанию) -->
+            <!-- Избранное -->
             <div id="favoritesContent" class="bg-white rounded-2xl shadow-lg p-6 hidden">
                 <h2 class="text-xl font-bold text-gray-800 mb-6">
                     <i class="fas fa-heart text-red-500 mr-2"></i>Моё избранное
@@ -84,8 +82,7 @@
                 
                 <!-- Кнопка добавить места -->
                 <div class="mt-8 pt-6 border-t">
-                    <a href="definite.html" 
-                       class="block w-full text-center gradient-bg text-white py-3 rounded-lg font-medium hover:opacity-90">
+                    <a href="definite.html" class="block w-full text-center gradient-bg text-white py-3 rounded-lg font-medium hover:opacity-90">
                         <i class="fas fa-plus mr-2"></i>Добавить места в избранное
                     </a>
                 </div>
@@ -93,182 +90,9 @@
         </div>
     </main>
 
-    <script>
-        const API_URL = 'http://127.0.0.1:8000/api';
-        let currentUser = null;
-        
-        // Загрузка профиля
-        async function loadProfile() {
-            const token = localStorage.getItem('access_token');
-            
-            if (!token) {
-                window.location.href = 'auth.html';
-                return;
-            }
-            
-            try {
-                const response = await fetch(`${API_URL}/users/me`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                
-                if (!response.ok) {
-                    throw new Error('Ошибка загрузки');
-                }
-                
-                currentUser = await response.json();
-                displayProfile(currentUser);
-                
-            } catch (error) {
-                console.error('Ошибка:', error);
-                localStorage.removeItem('access_token');
-                window.location.href = 'auth.html';
-            }
-        }
-        
-        function displayProfile(user) {
-            // Заполняем данные профиля
-            document.getElementById('fullName').textContent = user.full_name || 'Не указано';
-            document.getElementById('username').textContent = user.username;
-            document.getElementById('email').textContent = user.email;
-            
-            // Форматируем дату
-            const createdDate = new Date(user.created_at);
-            document.getElementById('createdAt').textContent = 
-                createdDate.toLocaleDateString('ru-RU', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                });
-        }
-        
-        // Переключение вкладок
-        function showTab(tabName) {
-            // Обновляем активные кнопки
-            document.getElementById('tabProfile').className = 
-                tabName === 'profile' ? 'tab-active px-6 py-3 text-lg' : 'tab-inactive px-6 py-3 text-lg';
-            document.getElementById('tabFavorites').className = 
-                tabName === 'favorites' ? 'tab-active px-6 py-3 text-lg' : 'tab-inactive px-6 py-3 text-lg';
-            
-            // Показываем нужный контент
-            document.getElementById('profileContent').classList.toggle('hidden', tabName !== 'profile');
-            document.getElementById('favoritesContent').classList.toggle('hidden', tabName !== 'favorites');
-            
-            // Если открыли вкладку избранного - загружаем
-            if (tabName === 'favorites') {
-                loadFavorites();
-            }
-        }
-        
-        // Загрузка избранного
-        async function loadFavorites() {
-            const token = localStorage.getItem('access_token');
-            const container = document.getElementById('favoritesList');
-            
-            if (!token) return;
-            
-            try {
-                container.innerHTML = `
-                    <div class="text-center py-8">
-                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
-                        <p class="mt-2 text-gray-600">Загрузка...</p>
-                    </div>
-                `;
-                
-                const response = await fetch(`${API_URL}/favorites`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                
-                if (!response.ok) throw new Error('Ошибка загрузки');
-                
-                const favorites = await response.json();
-                displayFavorites(favorites);
-                
-            } catch (error) {
-                console.error('Ошибка:', error);
-                container.innerHTML = `
-                    <div class="text-center py-8 text-red-500">
-                        <p>Ошибка загрузки избранного</p>
-                        <button onclick="loadFavorites()" class="mt-2 text-blue-600">Повторить</button>
-                    </div>
-                `;
-            }
-        }
-        
-        function displayFavorites(favorites) {
-            const container = document.getElementById('favoritesList');
-            
-            if (!favorites || favorites.length === 0) {
-                container.innerHTML = `
-                    <div class="text-center py-12 text-gray-500">
-                        <i class="far fa-heart text-4xl mb-4"></i>
-                        <p>У вас пока нет избранных мест</p>
-                        <p class="text-sm mt-2">Добавляйте места во время планирования поездок</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            container.innerHTML = favorites.map(fav => `
-                <div class="flex items-center justify-between p-4 border rounded-xl hover:bg-gray-50">
-                    <div class="flex items-center">
-                        <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center text-red-500 mr-3">
-                            <i class="fas fa-heart"></i>
-                        </div>
-                        <div>
-                            <h5 class="font-bold text-gray-800">${fav.place.name}</h5>
-                            <p class="text-gray-500 text-sm">${fav.place.type} • ${fav.place.city_id ? 'Город' : ''}</p>
-                            <p class="text-gray-400 text-xs">Добавлено: ${new Date(fav.created_at).toLocaleDateString('ru-RU')}</p>
-                        </div>
-                    </div>
-                    <div class="space-x-2">
-                        <button onclick="removeFromFavorites(${fav.place_id}, '${fav.place.name}')" 
-                                class="px-3 py-1 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 text-sm">
-                            <i class="fas fa-trash mr-1"></i>Удалить
-                        </button>
-                    </div>
-                </div>
-            `).join('');
-        }
-        
-        // Удаление из избранного
-        async function removeFromFavorites(placeId, placeName) {
-            if (!confirm(`Удалить "${placeName}" из избранного?`)) return;
-            
-            const token = localStorage.getItem('access_token');
-            
-            try {
-                const response = await fetch(`${API_URL}/favorites/${placeId}`, {
-                    method: 'DELETE',
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                
-                if (response.ok) {
-                    alert('Удалено из избранного');
-                    loadFavorites(); // Перезагружаем список
-                }
-            } catch (error) {
-                alert('Ошибка удаления');
-            }
-        }
-        
-        // Выход
-        function logout() {
-            localStorage.removeItem('access_token');
-            window.location.href = 'index.html';
-        }
-        
-        // При загрузке страницы
-        document.addEventListener('DOMContentLoaded', () => {
-            loadProfile();
-            
-            // Проверяем URL параметр для открытия определенной вкладки
-            const urlParams = new URLSearchParams(window.location.search);
-            const tab = urlParams.get('tab');
-            
-            if (tab === 'favorites') {
-                showTab('favorites');
-            }
-        });
-    </script>
+    <!-- Подключаем JS -->
+    <script src="js/api.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/profile.js"></script>
 </body>
 </html>

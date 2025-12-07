@@ -1,0 +1,475 @@
+/* css/auth.css - КОНФЕТКА */
+:root {
+    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --primary-light: rgba(102, 126, 234, 0.1);
+    --success-color: #10b981;
+    --error-color: #ef4444;
+    --text-dark: #1f2937;
+    --text-gray: #6b7280;
+    --border-color: #e5e7eb;
+}
+
+* { 
+    margin: 0; 
+    padding: 0; 
+    box-sizing: border-box; 
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    position: relative;
+    overflow-x: hidden;
+}
+
+/* Фоновые элементы */
+.background-decorations {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    z-index: 0;
+}
+
+.circle {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.circle-1 {
+    width: 300px;
+    height: 300px;
+    top: -150px;
+    right: -100px;
+}
+
+.circle-2 {
+    width: 200px;
+    height: 200px;
+    bottom: -100px;
+    left: -50px;
+}
+
+.circle-3 {
+    width: 150px;
+    height: 150px;
+    top: 50%;
+    left: -75px;
+}
+
+.home-button {
+    position: absolute;
+    top: 25px;
+    left: 25px;
+    background: rgba(255, 255, 255, 0.95);
+    color: #667eea;
+    text-decoration: none;
+    padding: 12px 20px;
+    border-radius: 50px;
+    font-size: 15px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.4s;
+    border: 2px solid rgba(102, 126, 234, 0.2);
+    z-index: 100;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    backdrop-filter: blur(10px);
+    animation: fadeIn 0.8s ease-out 0.3s both;
+}
+
+.home-button:hover {
+    background: white;
+    color: #764ba2;
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+    border-color: rgba(102, 126, 234, 0.4);
+}
+
+.home-button i {
+    font-size: 18px;
+    transition: transform 0.3s;
+}
+
+.home-button:hover i {
+    transform: translateX(-3px);
+}
+
+/* Контейнер формы */
+.container {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 24px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    width: 100%;
+    max-width: 440px;
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: transform 0.3s ease;
+}
+
+.container:hover {
+    transform: translateY(-1px);
+}
+
+/* Заголовок */
+.header {
+    padding: 32px 32px 0;
+    text-align: center;
+}
+
+.logo {
+    margin-bottom: 8px;
+}
+
+.logo h1 {
+    font-size: 36px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -0.5px;
+}
+
+.logo p {
+    color: var(--text-gray);
+    font-size: 14px;
+    font-weight: 500;
+    opacity: 0.8;
+}
+
+/* Контейнер формы */
+.form-container {
+    padding: 32px;
+    animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Заголовок формы */
+.form-title {
+    text-align: center;
+    margin-bottom: 32px;
+    color: var(--text-dark);
+    font-size: 28px;
+    font-weight: 700;
+    position: relative;
+    padding-bottom: 16px;
+}
+
+.form-title::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 4px;
+    background: var(--primary-gradient);
+    border-radius: 2px;
+}
+
+/* Поля ввода */
+.form-group {
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.form-input {
+    width: 100%;
+    padding: 16px 20px 16px 48px;
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    font-size: 15px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+    color: var(--text-dark);
+    background: white;
+    transition: all 0.3s;
+}
+
+.form-input:focus {
+    border-color: #667eea;
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
+    transform: translateY(-2px);
+}
+
+.form-input::placeholder {
+    color: #9ca3af;
+    font-weight: 400;
+}
+
+/* Иконки полей */
+.input-icon {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #667eea;
+    font-size: 18px;
+    z-index: 1;
+    transition: all 0.3s;
+}
+
+.form-input:focus + .input-icon {
+    color: #764ba2;
+    transform: translateY(-50%) scale(1.1);
+}
+
+/* Кнопка показа пароля */
+.password-toggle {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #9ca3af;
+    cursor: pointer;
+    font-size: 18px;
+    padding: 4px;
+    transition: all 0.3s;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.password-toggle:hover {
+    color: #667eea;
+    background: rgba(102, 126, 234, 0.1);
+}
+
+/* Кнопка отправки */
+.form-btn {
+    width: 100%;
+    padding: 16px;
+    background: var(--primary-gradient);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-family: 'Poppins', sans-serif;
+    margin-top: 8px;
+    position: relative;
+    overflow: hidden;
+    letter-spacing: 0.5px;
+}
+
+.form-btn::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateX(-100%);
+    transition: transform 0.6s;
+}
+
+.form-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+}
+
+.form-btn:hover::after {
+    transform: translateX(100%);
+}
+
+.form-btn:active {
+    transform: translateY(-1px);
+}
+
+.form-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+.form-btn:disabled::after {
+    display: none;
+}
+
+/* Переключатель форм */
+.form-switch {
+    text-align: center;
+    margin-top: 28px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border-color);
+    color: var(--text-gray);
+    font-size: 15px;
+}
+
+.form-switch a {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    padding: 4px 8px;
+    border-radius: 6px;
+    margin-left: 4px;
+}
+
+.form-switch a:hover {
+    color: #764ba2;
+    background: rgba(102, 126, 234, 0.1);
+}
+
+/* Сообщения об ошибках/успехе */
+.error-message, .success-message {
+    font-size: 14px;
+    margin-bottom: 20px;
+    text-align: center;
+    padding: 14px 16px;
+    border-radius: 10px;
+    font-weight: 500;
+    animation: slideInDown 0.4s ease-out;
+}
+
+@keyframes slideInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.error-message {
+    color: var(--error-color);
+    background: #fee2e2;
+    border: 1px solid #fecaca;
+}
+
+.success-message {
+    color: var(--success-color);
+    background: #d1fae5;
+    border: 1px solid #a7f3d0;
+}
+
+/* Анимация появления */
+.fade-in {
+    animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Адаптивность */
+@media (max-width: 480px) {
+    body {
+        padding: 15px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    
+    .home-button {
+        top: 20px;
+        left: 20px;
+        padding: 10px 16px;
+        font-size: 14px;
+        gap: 8px;
+    }
+    
+    .home-button i {
+        font-size: 16px;
+    }
+    
+    /* Сдвигаем контейнер формы вниз, чтобы кнопка не перекрывала */
+    .container {
+        margin-top: 60px;
+    }
+    
+    .container {
+        max-width: 100%;
+        margin: 0;
+        border-radius: 20px;
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+    }
+    
+    .header {
+        padding: 28px 24px 0;
+    }
+    
+    .form-container {
+        padding: 28px 24px;
+    }
+    
+    .logo h1 {
+        font-size: 32px;
+    }
+    
+    .form-title {
+        font-size: 24px;
+        margin-bottom: 28px;
+    }
+    
+    .form-input {
+        padding: 15px 16px 15px 48px;
+        font-size: 15px;
+    }
+    
+    .form-btn {
+        padding: 15px;
+        font-size: 15px;
+    }
+}
+
+/* Эффект для фона при смене формы */
+.form-change {
+    animation: formChange 0.4s ease-out;
+}
+
+@keyframes formChange {
+    0% { opacity: 0.8; transform: scale(0.98); }
+    100% { opacity: 1; transform: scale(1); }
+}
+
+/* Дополнительные украшения */
+.form-decoration {
+    position: absolute;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(90deg, #667eea, #764ba2, #667eea);
+    background-size: 200% 100%;
+    animation: gradientFlow 3s ease infinite;
+    bottom: 0;
+    left: 0;
+    border-radius: 0 0 24px 24px;
+}
+
+@keyframes gradientFlow {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}

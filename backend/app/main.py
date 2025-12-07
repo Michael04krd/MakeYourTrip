@@ -3,7 +3,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from typing import List, Optional
 import jwt
-from sqlalchemy import inspect
 
 from app.database import engine, get_db
 from app import models, schemas, auth
@@ -13,7 +12,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:8000","http://127.0.0.1:8000"],
+    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -101,28 +100,8 @@ def login(
 
 # Получение текущего пользователя
 @app.get("/api/users/me", response_model=schemas.UserResponse)
-def read_users_me(
-    authorization: str = Header(None), 
-    db: Session = Depends(get_db)
-):
-    if not authorization or not authorization.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Токен не предоставлен")
-    
-    token = authorization[7:]  
-    
-    try:
-        payload = jwt.decode(token, auth.SECRET_KEY, algorithms=[auth.ALGORITHM])
-        username: str = payload.get("sub")
-        if username is None:
-            raise HTTPException(status_code=401, detail="Неверный токен")
-    except jwt.PyJWTError:
-        raise HTTPException(status_code=401, detail="Неверный токен")
-    
-    user = db.query(models.User).filter(models.User.username == username).first()
-    if user is None:
-        raise HTTPException(status_code=404, detail="Пользователь не найден")
-    
-    return user
+def read_users_me(current_user: models.User = Depends(get_current_user)):
+    return current_user
 
 # Режимы работы
 @app.get("/api/mode/{mode_name}")
@@ -264,9 +243,12 @@ def get_favorites(
         models.Favorite.user_id == current_user.id
     ).all()
     
-    # Вручную добавляем информацию о местах
-    for fav in favorites:
-        fav.place = db.query(models.Place).filter(models.Place.id == fav.place_id).first()
+    favorites = (
+    db.query(models.Favorite)
+    .filter(models.Favorite.user_id == current_user.id)
+    .join(models.Favorite.place)
+    .all()
+)
     
     return favorites
 
