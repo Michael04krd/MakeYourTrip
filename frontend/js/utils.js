@@ -1,4 +1,3 @@
-// js/utils.js
 class UIUtils {
     static showNotification(message, type = 'success', duration = 3000) {
         // Удаляем старые уведомления

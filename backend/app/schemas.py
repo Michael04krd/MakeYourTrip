@@ -1,12 +1,16 @@
-from pydantic import BaseModel
-from typing import Optional, List
+from pydantic import BaseModel, EmailStr, Field
+from typing import Optional
 from datetime import datetime
 
 class UserCreate(BaseModel):
-    username: str
-    email: str
-    password: str
-    full_name: Optional[str] = None
+    username: str = Field(
+        min_length=3, 
+        max_length=20,
+        pattern=r'^[a-zA-Z0-9_]+$'
+    )
+    email: EmailStr
+    password: str = Field(min_length=6)
+    full_name: Optional[str] = Field(None, max_length=20) 
 
 class UserResponse(BaseModel):
     id: int
@@ -23,11 +27,6 @@ class Token(BaseModel):
     access_token: str
     token_type: str
 
-class UserLogin(BaseModel):
-    username: str
-    password: str
-
-# Для городов
 class CityBase(BaseModel):
     name: str
     climate: str
@@ -43,7 +42,6 @@ class CityResponse(CityBase):
     class Config:
         from_attributes = True
 
-# Для мест
 class PlaceBase(BaseModel):
     name: str
     type: str

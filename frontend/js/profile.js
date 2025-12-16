@@ -1,4 +1,3 @@
-// js/profile.js
 document.addEventListener('DOMContentLoaded', function() {
     // Элементы
     const tabProfile = document.getElementById('tabProfile');

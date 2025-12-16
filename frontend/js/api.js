@@ -1,4 +1,3 @@
-// js/api.js
 class ApiClient {
     constructor() {
         this.BASE_URL = 'http://127.0.0.1:8000/api';

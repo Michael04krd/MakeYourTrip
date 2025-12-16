@@ -1,4 +1,3 @@
-// js/definite.js
 document.addEventListener('DOMContentLoaded', function() {
     // ========== КОНСТАНТЫ И ПЕРЕМЕННЫЕ ==========
     let currentCity = null;

@@ -1,4 +1,3 @@
-// js/auth.js - С ВАЛИДАЦИЕЙ EMAIL
 document.addEventListener('DOMContentLoaded', function() {
     // Проверяем авторизацию
     if (localStorage.getItem('access_token')) {

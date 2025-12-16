@@ -18,7 +18,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Вспомогательная функция для получения пользователя из токена - ПЕРЕМЕСТИ СЮДА!
+# Функция для получения пользователя из токена
 def get_current_user(authorization: str = Header(None), db: Session = Depends(get_db)):
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Токен не предоставлен")
@@ -238,11 +238,6 @@ def get_favorites(
     current_user: models.User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    # Получаем избранные места
-    favorites = db.query(models.Favorite).filter(
-        models.Favorite.user_id == current_user.id
-    ).all()
-    
     favorites = (
     db.query(models.Favorite)
     .filter(models.Favorite.user_id == current_user.id)
