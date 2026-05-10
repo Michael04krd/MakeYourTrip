@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // ========== КОНСТАНТЫ И ПЕРЕМЕННЫЕ ==========
     let currentCity = null;
     let selectedPlaces = [];
     let allPlaces = [];
@@ -14,7 +13,6 @@ document.addEventListener('DOMContentLoaded', function() {
         cafe: { icon: 'fa-coffee', color: 'text-amber-500', bg: 'bg-amber-100' }
     };
 
-    // ========== ИНИЦИАЛИЗАЦИЯ ==========
     init();
 
     function init() {
@@ -38,7 +36,6 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('generatePlanButton').addEventListener('click', generatePlan);
     }
 
-    // ========== АВТОРИЗАЦИЯ ==========
     function checkAuth() {
         const token = localStorage.getItem('access_token');
         const container = document.getElementById('authContainer');
@@ -67,7 +64,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // ========== ФУНКЦИИ ДЛЯ ГОРОДОВ ==========
     async function loadCities() {
         const container = document.getElementById('citiesContainer');
         
@@ -174,7 +170,6 @@ document.addEventListener('DOMContentLoaded', function() {
         updateProgress(2);
     }
 
-    // ========== ФУНКЦИИ ДЛЯ МЕСТ ==========
     function applyFilters() {
         // Получаем выбранные типы
         const checkboxes = document.querySelectorAll('#step2Section input[type="checkbox"]:checked');
@@ -217,7 +212,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
-            // ПРОВЕРЯЕМ ИЗБРАННОЕ ТОЛЬКО ЕСЛИ АВТОРИЗОВАН
             const token = localStorage.getItem('access_token');
             let placesWithFavorites;
             
